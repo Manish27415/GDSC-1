@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Example E-commerce Registration Form</title>
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+</head>
+<body>
+    <form action="process_registration.php" method="post">
+        <!-- Your other form fields -->
+        
+        <!-- Google reCAPTCHA -->
+        <div class="g-recaptcha" data-sitekey="YOUR_RECAPTCHA_SITE_KEY"></div>
+        
+        <input type="submit" value="Register">
+    </form>
+</body>
+</html>
+----------------------------------------------------------------------------------------------------------
+const express = require('express');
+const bodyParser = require('body-parser');
+const request = require('request');
+
+const app = express();
+
+app.use(bodyParser.urlencoded({ extended: false }));
+app.use(express.static(__dirname));
+
+app.get('/', (req, res) => {
+    res.sendFile(__dirname + '/index.html');
+});
+
+app.post('/register', (req, res) => {
+    // Your form processing code here
+
+    // Verify the reCAPTCHA
+    const recaptchaSecret = 'YOUR_RECAPTCHA_SECRET_KEY';
+    const recaptchaResponse = req.body['g-recaptcha-response'];
+    const url = 'https://www.google.com/recaptcha/api/siteverify';
+
+    const options = {
+        uri: url,
+        method: 'POST',
+        json: true,
+        form: {
+            secret: recaptchaSecret,
+            response: recaptchaResponse,
+        },
+    };
+
+    request(options, (error, response, body) => {
+        if (!error && body.success) {
+            // reCAPTCHA verification passed; continue processing the form
+            // Your code for saving user data or other actions
+
+            res.send('Registration successful!');
+        } else {
+            // reCAPTCHA verification failed
+            // Handle the error or display a message to the user
+            res.send('reCAPTCHA verification failed. Please try again.');
+        }
+    });
+});
+
+const port = 3000;
+app.listen(port, () => {
+    console.log(`Server is running on port ${port}`);
+});
